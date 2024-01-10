@@ -52,7 +52,7 @@ pub fn build(b: *std.Build) void {
     });
 
     test_exe.root_module.addOptions("options", options);
-    test_exe.root_module.addImport("tracy", module);
+    test_exe.linkLibrary(lib);
 
     const run_test = b.addRunArtifact(test_exe);
     const test_step = b.step("test", "run the test");
