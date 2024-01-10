@@ -1,9 +1,12 @@
 const std = @import("std");
 const SourceLocation = std.builtin.SourceLocation;
 
-const enabled = true;
-const has_callstack = true;
-const callstack_depth = 16;
+const options = @import("options");
+
+const enabled = options.enable;
+const has_callstack = options.has_callstack;
+const callstack_depth = options.callstack_depth;
+
 const message_buffer_size = if (enabled) 4096 else 0;
 
 pub const PlotFormat = enum(c_uint) {
@@ -342,3 +345,36 @@ extern fn ___tracy_shutdown_profiler() void;
 
 extern fn ___tracy_fiber_enter(fiber: [*c]const u8) void;
 extern fn ___tracy_fiber_leave() void;
+
+test "all" {
+    var tra = TracingAllocator.init(std.testing.allocator);
+    const allocator = tra.allocator();
+
+    for (0..200_000) |_| {
+        frameMark();
+
+        var ctx = zone(@src());
+        ctx.end();
+
+        frameMarkNamed("Frame2");
+
+        ctx = zoneN(@src(), "Hello");
+        ctx.end();
+
+        ctx = zoneC(@src(), 0xffffff);
+        ctx.end();
+
+        ctx = zoneNC(@src(), "hello 2", 0xffeeaa);
+        ctx.end();
+
+        frameMarkStart("frame3");
+
+        const mem = try allocator.alloc(u8, 100);
+        const new_mem = try allocator.realloc(mem, 200);
+        allocator.free(new_mem);
+
+        logFn(.info, .testing, "hello ctx is {}", .{ctx});
+
+        frameMarkEnd("frame3");
+    }
+}
