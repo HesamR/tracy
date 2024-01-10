@@ -1,0 +1,9 @@
+.{
+	.name = "tracy",
+	.version = "0.10",
+	.paths = .{
+		"build.zig"	,
+		"src",
+		"c-src",
+	},
+}
