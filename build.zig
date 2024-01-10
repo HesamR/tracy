@@ -13,28 +13,36 @@ pub fn build(b: *std.Build) void {
     options.addOption(bool, "has_callstack", has_callstack);
     options.addOption(u8, "callstack_depth", callstack_depth);
 
-    const module = b.addModule("main", .{
-        .root_source_file = .{ .path = "src/tracy.zig" },
+    const lib = b.addStaticLibrary(.{
+        .name = "tracy",
         .target = target,
         .optimize = optimize,
-        .link_libc = true,
-        .link_libcpp = true,
     });
 
-    module.addOptions("options", options);
+    lib.linkLibC();
+    lib.linkLibCpp();
 
-    if (target.result.os.tag == .windows) {
-        module.linkSystemLibrary("Ws2_32", .{});
-        module.linkSystemLibrary("Dbghelp", .{});
-    }
-
-    module.addCSourceFile(.{
+    lib.addCSourceFile(.{
         .file = .{ .path = "c-src/TracyClient.cpp" },
         .flags = &.{"-std=c++14"},
     });
 
     if (enable) {
-        module.addCMacro("TRACY_ENABLE", "");
+        lib.defineCMacro("TRACY_ENABLE", null);
+    }
+
+    const module = b.addModule("main", .{
+        .root_source_file = .{ .path = "src/tracy.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    module.addOptions("options", options);
+    module.linkLibrary(lib);
+
+    if (target.result.os.tag == .windows) {
+        module.linkSystemLibrary("Ws2_32", .{});
+        module.linkSystemLibrary("Dbghelp", .{});
     }
 
     const test_exe = b.addTest(.{
