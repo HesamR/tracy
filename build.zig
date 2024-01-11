@@ -37,24 +37,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    module.addOptions("options", options);
+    module.addOptions("tracy-options", options);
     module.linkLibrary(lib);
 
     if (target.result.os.tag == .windows) {
         module.linkSystemLibrary("Ws2_32", .{});
         module.linkSystemLibrary("Dbghelp", .{});
     }
-
-    const test_exe = b.addTest(.{
-        .root_source_file = .{ .path = "src/tracy.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-
-    test_exe.root_module.addOptions("options", options);
-    test_exe.linkLibrary(lib);
-
-    const run_test = b.addRunArtifact(test_exe);
-    const test_step = b.step("test", "run the test");
-    test_step.dependOn(&run_test.step);
 }
