@@ -105,7 +105,7 @@ fn staticifySrcLoc(
     color: u32,
 ) *SourceLocationData {
     const static = struct {
-        var src: SourceLocationData = undefined;
+        pub var src: SourceLocationData = undefined;
     };
 
     static.src = .{

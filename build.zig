@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
     lib.linkLibCpp();
 
     lib.addCSourceFile(.{
-        .file = .{ .path = "c-src/TracyClient.cpp" },
+        .file = b.path("c-src/TracyClient.cpp"),
         .flags = &.{"-std=c++14"},
     });
 
@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
     }
 
     const module = b.addModule("main", .{
-        .root_source_file = .{ .path = "src/tracy.zig" },
+        .root_source_file = b.path("src/tracy.zig"),
         .target = target,
         .optimize = optimize,
     });
